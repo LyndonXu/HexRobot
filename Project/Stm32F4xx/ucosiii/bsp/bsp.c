@@ -435,7 +435,11 @@ void  BSP_LED_Toggle(CPU_INT08U  led)
 	switch(led)
 	{
 	case 0u:
-		HAL_GPIO_TogglePin(GPIOC, (GPIO_PIN_13));
+		//HAL_GPIO_TogglePin(GPIOC, (GPIO_PIN_13));
+		HAL_GPIO_WritePin(GPIOC, (GPIO_PIN_13), 
+			HAL_GPIO_ReadPin(GPIOC, GPIO_PIN_13) == GPIO_PIN_SET ? 
+			GPIO_PIN_RESET : GPIO_PIN_SET);
+
 		break;
 
 

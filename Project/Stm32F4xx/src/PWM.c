@@ -9,11 +9,16 @@
 #include <stdint.h>
 #include <stddef.h>
 #include <stdbool.h>
+#include <string.h>
 #include "stm32f4xx_hal.h"
 
 #define PWM_OUT_MAX_CHANNEL		18
 #define PWM_IN_MAX_CHANNEL		10
-#define PWM_OUT_PEROID			667		/* us */
+#define PWM_OUT_PEROID			10000		/* us */
+#define PWM_OUT_INIT			1500		/* us */
+#define PWM_OUT_MAX				2500
+#define PWM_OUT_MIN				500
+
 
 typedef struct _tagStRCInput
 {
@@ -111,11 +116,13 @@ static void PWMGPIOInit(void)
 
 void PWMOutInit(void)
 {
-	/* 1M, 1500Hz(Period 667) */
+	/* 1M, 100Hz(Period 10000) */
 	uint32_t u32PrescalerValue = (uint32_t)((SystemCoreClock / 2) / 1000000) - 1;
 	uint32_t u32Period = PWM_OUT_PEROID - 1;
-	TIM_OC_InitTypeDef stOCConfig;
+	TIM_OC_InitTypeDef stOCConfig = { 0 };
 
+	
+	/* timer 3 */
 	__HAL_RCC_TIM3_CLK_ENABLE();
 
 	s_stTime3Handle.Instance = TIM3;
@@ -131,10 +138,11 @@ void PWMOutInit(void)
 	}
 
 
+	memset(&stOCConfig, 0, sizeof(TIM_OC_InitTypeDef));
 	stOCConfig.OCMode = TIM_OCMODE_PWM1;
 	stOCConfig.OCPolarity = TIM_OCPOLARITY_HIGH;
 	stOCConfig.OCFastMode = TIM_OCFAST_DISABLE;
-	stOCConfig.Pulse = 0;
+	stOCConfig.Pulse = PWM_OUT_INIT;
 	/* Set the pulse value for channel 1 */
 	{
 		uint32_t i = 0;
@@ -154,6 +162,178 @@ void PWMOutInit(void)
 		}
 	}
 
+	
+
+	/* timer 4 */
+	__HAL_RCC_TIM4_CLK_ENABLE();
+
+
+	s_stTime4Handle.Instance = TIM4;
+	s_stTime4Handle.Init.Prescaler = u32PrescalerValue;
+	s_stTime4Handle.Init.Period = u32Period;
+	s_stTime4Handle.Init.ClockDivision = 0;
+	s_stTime4Handle.Init.CounterMode = TIM_COUNTERMODE_UP;
+	if(HAL_TIM_PWM_Init(&s_stTime4Handle) != HAL_OK)
+	{
+		/* Initialization Error */
+		Error_Handler();
+	}
+
+
+	memset(&stOCConfig, 0, sizeof(TIM_OC_InitTypeDef));
+	stOCConfig.OCMode = TIM_OCMODE_PWM1;
+	stOCConfig.OCPolarity = TIM_OCPOLARITY_HIGH;
+	stOCConfig.OCFastMode = TIM_OCFAST_DISABLE;
+	stOCConfig.Pulse = PWM_OUT_INIT;
+	/* Set the pulse value for channel 1 */
+	{
+		uint32_t i = 0;
+		for (i = 0; i < 4; i++)
+		{
+			if(HAL_TIM_PWM_ConfigChannel(&s_stTime4Handle, &stOCConfig, (i * 4)) != HAL_OK)
+			{
+				/* Configuration Error */
+				Error_Handler();
+			}
+
+			if(HAL_TIM_PWM_Start(&s_stTime4Handle, (i * 4)) != HAL_OK)
+			{
+				/* PWM Generation Error */
+				Error_Handler();
+			}
+
+			stOCConfig.Pulse += 100;			
+		}
+	}
+
+	/* timer 5 */
+	__HAL_RCC_TIM5_CLK_ENABLE();
+
+
+	s_stTime5Handle.Instance = TIM5;
+	s_stTime5Handle.Init.Prescaler = u32PrescalerValue;
+	s_stTime5Handle.Init.Period = u32Period;
+	s_stTime5Handle.Init.ClockDivision = 0;
+	s_stTime5Handle.Init.CounterMode = TIM_COUNTERMODE_UP;
+	if(HAL_TIM_PWM_Init(&s_stTime5Handle) != HAL_OK)
+	{
+		/* Initialization Error */
+		Error_Handler();
+	}
+
+
+	memset(&stOCConfig, 0, sizeof(TIM_OC_InitTypeDef));
+	stOCConfig.OCMode = TIM_OCMODE_PWM1;
+	stOCConfig.OCPolarity = TIM_OCPOLARITY_HIGH;
+	stOCConfig.OCFastMode = TIM_OCFAST_DISABLE;
+	stOCConfig.Pulse = PWM_OUT_INIT;
+	/* Set the pulse value for channel 1 */
+	{
+		uint32_t i = 0;
+		for (i = 0; i < 4; i++)
+		{
+			if(HAL_TIM_PWM_ConfigChannel(&s_stTime5Handle, &stOCConfig, (i * 4)) != HAL_OK)
+			{
+				/* Configuration Error */
+				Error_Handler();
+			}
+
+			if(HAL_TIM_PWM_Start(&s_stTime5Handle, (i * 4)) != HAL_OK)
+			{
+				/* PWM Generation Error */
+				Error_Handler();
+			}
+
+			stOCConfig.Pulse += 100;			
+		}
+	}
+
+	/* timer 8 */
+	__HAL_RCC_TIM8_CLK_ENABLE();
+
+
+	s_stTime8Handle.Instance = TIM8;
+	s_stTime8Handle.Init.Prescaler = u32PrescalerValue * 2;
+	s_stTime8Handle.Init.Period = u32Period;
+	s_stTime8Handle.Init.ClockDivision = 0;
+	s_stTime8Handle.Init.CounterMode = TIM_COUNTERMODE_UP;
+	if(HAL_TIM_PWM_Init(&s_stTime8Handle) != HAL_OK)
+	{
+		/* Initialization Error */
+		Error_Handler();
+	}
+
+
+	memset(&stOCConfig, 0, sizeof(TIM_OC_InitTypeDef));
+	stOCConfig.OCMode = TIM_OCMODE_PWM1;
+	stOCConfig.OCPolarity = TIM_OCPOLARITY_HIGH;
+	stOCConfig.OCFastMode = TIM_OCFAST_DISABLE;
+	stOCConfig.Pulse = PWM_OUT_INIT;
+	
+	
+	/* Set the pulse value for channel 1 */
+	{
+		uint32_t i = 0;
+		for (i = 0; i < 4; i++)
+		{
+			if(HAL_TIM_PWM_ConfigChannel(&s_stTime8Handle, &stOCConfig, (i * 4)) != HAL_OK)
+			{
+				/* Configuration Error */
+				Error_Handler();
+			}
+
+			if(HAL_TIM_PWM_Start(&s_stTime8Handle, (i * 4)) != HAL_OK)
+			{
+				/* PWM Generation Error */
+				Error_Handler();
+			}
+
+			stOCConfig.Pulse += 100;			
+		}
+	}
+
+	/* timer 9 */
+	__HAL_RCC_TIM9_CLK_ENABLE();
+
+
+	s_stTime9Handle.Instance = TIM9;
+	s_stTime9Handle.Init.Prescaler = u32PrescalerValue * 2;
+	s_stTime9Handle.Init.Period = u32Period;
+	s_stTime9Handle.Init.ClockDivision = 0;
+	s_stTime9Handle.Init.CounterMode = TIM_COUNTERMODE_UP;
+	if(HAL_TIM_PWM_Init(&s_stTime9Handle) != HAL_OK)
+	{
+		/* Initialization Error */
+		Error_Handler();
+	}
+
+
+	memset(&stOCConfig, 0, sizeof(TIM_OC_InitTypeDef));
+	stOCConfig.OCMode = TIM_OCMODE_PWM1;
+	stOCConfig.OCPolarity = TIM_OCPOLARITY_HIGH;
+	stOCConfig.OCFastMode = TIM_OCFAST_DISABLE;
+	stOCConfig.Pulse = PWM_OUT_INIT;
+	/* Set the pulse value for channel 1 */
+	{
+		uint32_t i = 0;
+		for (i = 0; i < 2; i++)
+		{
+			if(HAL_TIM_PWM_ConfigChannel(&s_stTime9Handle, &stOCConfig, (i * 4)) != HAL_OK)
+			{
+				/* Configuration Error */
+				Error_Handler();
+			}
+
+			if(HAL_TIM_PWM_Start(&s_stTime9Handle, (i * 4)) != HAL_OK)
+			{
+				/* PWM Generation Error */
+				Error_Handler();
+			}
+
+			stOCConfig.Pulse += 100;			
+		}
+	}
+	
 }
 
 void PWMInInit(void)
@@ -180,6 +360,7 @@ void PWMInInit(void)
 	}
 	
 	/* Configure the Input Capture of channel */
+	memset(&stICConfig, 0, sizeof(TIM_IC_InitTypeDef));
 	stICConfig.ICPolarity  = TIM_ICPOLARITY_RISING;
 	stICConfig.ICSelection = TIM_ICSELECTION_DIRECTTI;
 	stICConfig.ICPrescaler = TIM_ICPSC_DIV1;
@@ -230,6 +411,7 @@ void PWMInInit(void)
 	
 
 	/* Configure the Input Capture of channel */
+	memset(&stICConfig, 0, sizeof(TIM_IC_InitTypeDef));
 	stICConfig.ICPolarity  = TIM_ICPOLARITY_RISING;
 	stICConfig.ICSelection = TIM_ICSELECTION_DIRECTTI;
 	stICConfig.ICPrescaler = TIM_ICPSC_DIV1;
@@ -281,6 +463,7 @@ void PWMInInit(void)
 	
 
 	/* Configure the Input Capture of channel */
+	memset(&stICConfig, 0, sizeof(TIM_IC_InitTypeDef));
 	stICConfig.ICPolarity  = TIM_ICPOLARITY_RISING;
 	stICConfig.ICSelection = TIM_ICSELECTION_DIRECTTI;
 	stICConfig.ICPrescaler = TIM_ICPSC_DIV1;
@@ -370,6 +553,32 @@ int32_t PWMOutSetPerc(uint16_t u16Index, uint16_t u16Perc)
 		
 	return u16RealTime;	
 }
+
+int32_t PWMOutSetRealTime(uint16_t u16Index, uint16_t u16RealTime)
+{
+	uint16_t u16Perc  = 0;	/*  us */
+	if (u16Index >= PWM_OUT_MAX_CHANNEL)
+	{
+		return -1;
+	}
+	if (u16RealTime > PWM_OUT_MAX)
+	{
+		u16RealTime = PWM_OUT_MAX;
+	}
+	if (u16RealTime < PWM_OUT_MIN)
+	{
+		u16RealTime = PWM_OUT_MIN;
+	}
+	
+	u16Perc = u16RealTime * 1000 / PWM_OUT_PEROID;
+	{
+		uint32_t *pCRR = c_pPWMOutCRRArr[u16Index];
+		pCRR[0] = u16RealTime;
+	}
+		
+	return u16Perc;	
+}
+
 
 
 /* return us */

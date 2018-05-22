@@ -36,6 +36,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include <stdint.h>
 #include <stddef.h>
+#include <math.h>
 #include <stdbool.h>
 #include "stm32f4xx_hal.h"
 #include "stm32f4xx_it.h"
@@ -184,6 +185,7 @@ static  void  AppTaskStart (void *p_arg)
 	void PWMInit(void);
 	int32_t PWMOutSetPerc(uint16_t u16Index, uint16_t u16Perc);
 	int32_t PWMInGetPerc(uint16_t u16Index);
+	int32_t PWMOutSetRealTime(uint16_t u16Index, uint16_t u16RealTime);
 	
 	int32_t s32Cnt = 0;
 	
@@ -226,7 +228,7 @@ static  void  AppTaskStart (void *p_arg)
 			s32Cnt = 0;
 		}
 		
-#if 1
+#if 0
 		do
 		{
 			int32_t s32PWMIn = PWMInGetPerc(0);
@@ -270,41 +272,41 @@ static  void  AppTaskStart (void *p_arg)
 #endif
 		
 		
-#if 0		
+#if 1		
 		{
 			static uint32_t u32TestTime = 0;
 			static bool boIsACC = false;
-			static int16_t s16PWM = 1000;
-			if ((HAL_GetTick() - u32TestTime) > 1000)
+			static int16_t s16PWM = 1500;
+			if ((HAL_GetTick() - u32TestTime) > 100)
 			{
 				u32TestTime = HAL_GetTick();
 				if (boIsACC)
 				{
-					if (s16PWM >= 1000)
+					if (s16PWM >= 2400)
 					{
 						boIsACC = false;
-						s16PWM = 1000;
+						s16PWM = 2400;
 					}
 					else
 					{
-						s16PWM += 20;
+						s16PWM += 70;
 					}
 				}
 				else
 				{
-					if (s16PWM <= 0)
+					if (s16PWM <= 600)
 					{
 						boIsACC = true;
-						s16PWM = 0;
+						s16PWM = 600;
 					}
 					else
 					{
-						s16PWM -= 20;
+						s16PWM -= 70;
 					}					
 				}
 				
-				PWMOutSetPerc(0, s16PWM);
-				PWMOutSetPerc(1, s16PWM);
+				PWMOutSetRealTime(0, s16PWM);
+				PWMOutSetRealTime(1, s16PWM);
 				
 			}		
 		}
@@ -337,7 +339,41 @@ static void StartOS(void)
 
 	/* Configure the system clock to 168 MHz */
 	SystemClock_Config();
-	
+#if 0	
+	{
+		#define L1	10
+		#define L2	20
+		#define L3	20
+		
+		int32_t s32Begin = SysTick->VAL;
+		int32_t s32BeginI = HAL_GetTick();
+		int32_t s32End;
+		int32_t s32EndI;
+		float f32Theta1 = 0.0f;
+		float f32Theta2 = 0.0f;
+		float f32Theta3 = 0.0f;
+
+		float x = 30.0f;
+		float y = 0.0f;
+		float z = -10.0f;
+
+		f32Theta3 = 0.0f - acosf((x * x + y * y + z * z - L2 * L2 - L2 * L3) / 
+				(2.0f * L2 * L3));
+
+		if (f32Theta3 < 0.0f)
+		{
+			//f32Theta3 = 0.0 - f32Theta3;
+		}
+
+		f32Theta2 = atanf((z) / (sqrtf(x * x + y * y))) - 
+			atanf((L3 * sinf(f32Theta3)) / (L2 + L3 * cosf(f32Theta3)));
+
+		s32End = SysTick->VAL;
+		s32EndI = HAL_GetTick();
+		s32End = s32Begin - s32End;/* 5.7us */
+		s32Begin = s32End;
+	}
+#endif	
 	CPU_IntDis();
 	
     OSInit(&err);                                               /* Init uC/OS-III.                                      */
